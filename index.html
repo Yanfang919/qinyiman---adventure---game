@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嫚嫚小可耐的浪漫星球冒险</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <script>
+    // 获取画布和上下文
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 玩家角色
+    class Player {
+      constructor() {
+        this.x = canvas.width / 2;
+        this.y = canvas.height / 2;
+        this.radius = 20;
+        this.speed = 5;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+        ctx.closePath();
+      }
+      move(dx, dy) {
+        this.x += dx;
+        this.y += dy;
+        this.x = Math.max(this.radius, Math.min(this.x, canvas.width - this.radius));
+        this.y = Math.max(this.radius, Math.min(this.y, canvas.height - this.radius));
+      }
+    }
+
+    // 爱心道具
+    class Heart {
+      constructor() {
+        this.x = Math.random() * (canvas.width - 40) + 20;
+        this.y = Math.random() * (canvas.height - 40) + 20;
+        this.radius = 10;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle ='red';
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+
+    // 障碍物
+    class Obstacle {
+      constructor() {
+        this.x = Math.random() * (canvas.width - 40) + 20;
+        this.y = Math.random() * (canvas.height - 40) + 20;
+        this.width = 30;
+        this.height = 30;
+      }
+      draw() {
+        ctx.fillStyle = 'gray';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      }
+    }
+
+    const player = new Player();
+    const hearts = [];
+    const obstacles = [];
+    let score = 0;
+    let gameOver = false;
+
+    function init() {
+      for (let i = 0; i < 10; i++) {
+        hearts.push(new Heart());
+        obstacles.push(new Obstacle());
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      player.draw();
+      hearts.forEach(heart => heart.draw());
+      obstacles.forEach(obstacle => obstacle.draw());
+      ctx.font = '20px Arial';
+      ctx.fillText(`分数: ${score}`, 10, 30);
+      if (gameOver) {
+        ctx.font = '30px Arial';
+        ctx.fillText(`秦仪嫚小宝贝，游戏结束! 你的最终分数是 ${score}`, canvas.width / 2 - 150, canvas.height / 2);
+      }
+    }
+
+    function update() {
+      document.addEventListener('keydown', function (e) {
+        if (!gameOver) {
+          let dx = 0;
+          let dy = 0;
+          switch (e.key) {
+            case 'ArrowUp':
+              dy = -player.speed;
+              break;
+            case 'ArrowDown':
+              dy = player.speed;
+              break;
+            case 'ArrowLeft':
+              dx = -player.speed;
+              break;
+            case 'ArrowRight':
+              dx = player.speed;
+              break;
+          }
+          player.move(dx, dy);
+          checkCollisions();
+        }
+      });
+    }
+
+    function checkCollisions() {
+      hearts.forEach((heart, index) => {
+        const dx = player.x - heart.x;
+        const dy = player.y - heart.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < player.radius + heart.radius) {
+          hearts.splice(index, 1);
+          hearts.push(new Heart());
+          score += 10;
+        }
+      });
+
+      obstacles.forEach(obstacle => {
+        if (player.x < obstacle.x + obstacle.width &&
+          player.x + player.radius > obstacle.x &&
+          player.y < obstacle.y + obstacle.height &&
+          player.y + player.radius > obstacle.y) {
+          gameOver = true;
+        }
+      });
+    }
+
+    init();
+    alert('秦仪嫚小娇妻，欢迎来到专属于你的浪漫星球冒险游戏！快来操控小人收集爱心，躲避障碍物吧~');
+    function gameLoop() {
+      if (!gameOver) {
+        draw();
+        update();
+        requestAnimationFrame(gameLoop);
+      }
+    }
+    gameLoop();
+  </script>
+</body>
+
+</html>
